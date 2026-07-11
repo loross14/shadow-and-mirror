@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0f1216">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Our Words">
+<title>Our Words</title>
+<style>
+  :root{--bg:#0f1216;--card:#171b21;--ink:#eef1f4;--dim:#95a0ab;--hair:#252b33;--accent:#66b9af;--rec:#e5604e;--gold:#d9a85c}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+       padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+       -webkit-font-smoothing:antialiased}
+  .wrap{max-width:560px;margin:0 auto;padding:14px 16px 40px;display:flex;flex-direction:column;min-height:100%}
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .brand{font-weight:800;letter-spacing:.02em}
+  .brand small{display:block;font-weight:500;font-size:11px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
+  .count{font-size:12px;color:var(--dim);text-align:right}
+  .count b{color:var(--accent)}
+  .bar{height:4px;background:var(--hair);border-radius:99px;overflow:hidden;margin:2px 0 16px}
+  .bar>i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+  .card{background:var(--card);border:1px solid var(--hair);border-radius:16px;padding:18px 16px;margin-bottom:14px}
+  .meta{font:600 11px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap}
+  .meta .n{color:var(--dim)}
+  .prompt{font-size:20px;line-height:1.35;font-weight:600}
+  .alt{margin-top:10px;font-size:13px;color:var(--dim)}
+  .alt b{color:var(--ink);font-weight:600}
+  .zone{background:var(--card);border:1px solid var(--hair);border-radius:16px;padding:14px;margin-bottom:12px}
+  .zlab{font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .zlab .tag{font:600 10px/1 ui-monospace,Menlo,monospace;color:var(--dim);border:1px solid var(--hair);border-radius:6px;padding:4px 6px;text-transform:uppercase;letter-spacing:.06em}
+  .rowb{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 14px;background:#222a31;color:var(--ink);font-weight:600}
+  button:active{transform:translateY(1px)}
+  .rec{background:#2a2020;border:1px solid #3a2a2a}
+  .rec.on{background:var(--rec);border-color:var(--rec);color:#fff;animation:pulse 1.1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 #e5604e55}50%{box-shadow:0 0 0 8px #e5604e00}}
+  .time{font:600 13px ui-monospace,Menlo,monospace;color:var(--dim);min-width:44px}
+  audio{height:34px;flex:1;min-width:140px}
+  textarea{width:100%;margin-top:10px;background:#10141a;color:var(--ink);border:1px solid var(--hair);border-radius:10px;
+           padding:11px;font:16px/1.4 inherit;resize:vertical;min-height:52px}
+  textarea[dir=rtl]{text-align:right}
+  .dictate{background:#1d2630;border:1px solid var(--hair);font-size:13px;padding:9px 11px}
+  .nav{display:flex;gap:10px;margin-top:4px}
+  .nav .save{flex:1;background:var(--accent);color:#08110f;font-weight:800}
+  .nav .ghost{background:transparent;border:1px solid var(--hair);color:var(--dim)}
+  .exp{background:transparent;border:1px solid var(--hair);color:var(--accent);font-size:12px;padding:8px 10px;border-radius:10px}
+  .hint{font-size:12px;color:var(--dim);margin:2px 2px 12px}
+  .done{text-align:center;padding:30px 10px}
+  .done h2{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Our Words<small>say it together · keep it forever</small></div>
+    <div>
+      <div class="count"><b id="savedN">0</b> pairs saved</div>
+      <button class="exp" id="export">Export ⬇</button>
+    </div>
+  </header>
+  <div class="bar"><i id="prog"></i></div>
+  <div class="hint" id="hint">Read the card aloud together. He says it in Lebanese, you say it in English. Record each, fix the text, Save &amp; Next. Everything stays on this phone.</div>
+  <div id="app"></div>
+</div>
+
+<script>
+const SITUATIONS = [{"id": "LC-001", "stratum": "neutral-everyday (control)", "domain": "family", "difficulty": "easy", "prompt": "A parent texts a grown kid at home: 'Did you eat something? There's rice on the stove, just heat it up.' Plain domestic instruction, warm and offhand.", "alt": "A sibling reminds another before they leave the house: 'Take a jacket, it gets cold at night.' Simple caring reminder, no idiom."}, {"id": "LC-002", "stratum": "neutral-everyday (control)", "domain": "food", "difficulty": "easy", "prompt": "At a bakery counter: 'Give me two croissants and a coffee to go.' A short, everyday order with one embedded French food-loan (croissant).", "alt": "Around the table someone offers: 'You want more? There's still some left, don't be shy.' Casual second helping offer."}, {"id": "LC-003", "stratum": "neutral-everyday (control)", "domain": "church", "difficulty": "easy", "prompt": "Two people confirm plans after Sunday service: 'Mass is at ten this week, not eleven.' Flat scheduling fact in a church setting.", "alt": "Someone tells a family member: 'The priest asked about you, he said to come by.' Simple relayed message."}, {"id": "LC-004", "stratum": "neutral-everyday (control)", "domain": "logistics", "difficulty": "med", "prompt": "Coordinating a pickup: 'The taxi's downstairs, I'll meet you at the garage in five minutes.' Short logistics with an embedded French-loan (garage).", "alt": "Texting about an errand: 'Can you drop the package at the reception on your way down?' Everyday favor with a French-flavored loan (reception)."}, {"id": "LC-005", "stratum": "neutral-everyday (control)", "domain": "politics-light", "difficulty": "easy", "prompt": "Running late to meet friends: text them to start without you, you'll grab a coffee on the way.", "alt": "Half-following the news, someone shrugs to a friend: 'Same story every election, nothing changes.' Light political throwaway."}, {"id": "LC-006", "stratum": "neutral-everyday (control)", "domain": "emotional", "difficulty": "easy", "prompt": "Messaging a friend to ask how their weekend was and what their plans are for the coming weekend.", "alt": "Checking in gently: 'You sounded off yesterday, everything okay?' Short caring emotional check."}, {"id": "LC-007", "stratum": "neutral-everyday (control)", "domain": "social", "difficulty": "easy", "prompt": "Arriving to meet people: complain lightly that traffic was insane and you're completely wiped.", "alt": "Bumping into someone: 'It's been forever, we really need to catch up.' Casual social reconnect line."}, {"id": "LC-008", "stratum": "neutral-everyday (control)", "domain": "family", "difficulty": "med", "prompt": "Inviting someone over for dinner this week and coordinating which evening works to get together.", "alt": "Organizing a family gathering: 'Everyone's coming to my place Sunday, bring the kids.' Simple household coordination."}, {"id": "LC-009", "stratum": "heavy-french-code-switch", "domain": "food", "difficulty": "med", "prompt": "Running late to a friend's place for lunch; text them to go ahead and start eating without you, you'll grab a coffee on the way. (contrastive meaning A) — heavy French code-switch: open with a greeting/apology slot (bonjour/désolé[e]), the 'start without me' clause (commencez sans moi), and the 'coffee on the way' noun slot (café/prendre un café en route).", "alt": "At the boulangerie before a get-together, texting the host to ask whether you should bring the usual croissants or grab something else. — French code-switch in the pastry/bakery nouns (boulangerie, croissants) plus a casual checking-in connector (bon, du coup, sinon)."}, {"id": "LC-010", "stratum": "heavy-french-code-switch", "domain": "church", "difficulty": "hard", "prompt": "Catching up with a friend after Sunday mass; ask how their weekend was and what they're up to now. (contrastive meaning B) — very dense French: greeting slot (coucou/alors), the 'this weekend' noun (ce weekend), and the 'how was it / what are you doing' clause (c'était comment / tu fais quoi).", "alt": "Grumbling to another parishioner about who's supposed to organize the choir and flowers for the saint's feast this Sunday. — heavy French in the logistics/church nouns (la chorale, l'organisation, normalement) with an exasperated connector (franchement, quand même)."}, {"id": "LC-011", "stratum": "heavy-french-code-switch", "domain": "logistics", "difficulty": "med", "prompt": "Arriving somewhere and venting that the traffic was insane and you're completely wiped. (contrastive meaning C) — French slots for the highway/jam noun (l'autoroute, embouteillage) and the 'wiped/dead' idiom (crevé[e], je suis mort[e]) plus intensifier (franchement).", "alt": "Texting someone to come pick you up because there's nowhere to park downtown and you're circling. — French code-switch in the parking/logistics slots (le parking, se garer, centre-ville) with a casual ask connector (du coup, tu peux)."}, {"id": "LC-012", "stratum": "heavy-french-code-switch", "domain": "politics-light", "difficulty": "hard", "prompt": "Inviting a friend or relative over for dinner this week and pinning down which evening works. (contrastive meaning D) — dense French: the invite clause (venez dîner, on organise un truc), 'this week' (cette semaine), and a warm connector (bon, alors, ça vous dit).", "alt": "At a family table, warmly deflecting an uncle's political rant with a joke so dinner stays pleasant. — heavy French connectors and softeners (bon, écoute, on va pas commencer, laisse tomber) around the politics-light topic."}, {"id": "LC-013", "stratum": "heavy-french-code-switch", "domain": "emotional", "difficulty": "med", "prompt": "Consoling a friend right after a breakup; tell them they'll be okay and to hang in there. — French comfort slots: vocative (chérie/mon coeur), the 'it'll be fine' idiom (ça va aller), and encouragement (courage).", "alt": "Telling someone you really missed them and you're touched they showed up. — French affect slots: 'I missed you' (tu m'as manqué) and a warm intensifier (vraiment, ça me touche)."}, {"id": "LC-014", "stratum": "heavy-french-code-switch", "domain": "social", "difficulty": "hard", "prompt": "Trading gossip at a party about how someone has changed / what they showed up wearing. — dense French: opener (franchement / t'as vu), evaluative slots (c'est n'importe quoi, genre), and a knowing connector (quand même).", "alt": "Wriggling out of a party invite politely without committing, leaving the door open. — French hedging slots (on verra, peut-être, je vais essayer, en tout cas)."}, {"id": "LC-015", "stratum": "heavy-french-code-switch", "domain": "family", "difficulty": "med", "prompt": "Reassuring your mother on the phone that you're on your way and she shouldn't worry. — warm family French: vocative (maman/téta), 'don't worry' (ne t'inquiète pas), and 'I'm coming' (j'arrive).", "alt": "Coordinating with a sibling about who's picking up which dish for the Sunday family lunch. — French code-switch in the meal/logistics nouns (le déjeuner, le plat, du coup) with a casual divvy-up connector."}, {"id": "LC-016", "stratum": "heavy-french-code-switch", "domain": "food", "difficulty": "hard", "prompt": "Raving about a dish you just ate, saying it was absolutely delicious. — French food-praise idiom slots (un délice, c'était trop bon, franchement délicieux) as non-compositional praise.", "alt": "Politely turning down a third helping because you're stuffed and it was very rich. — French slots for 'I'm full' (je suis calé[e] / j'en peux plus) and 'too rich' (trop lourd, c'était copieux)."}, {"id": "LC-017", "stratum": "heavy-french-code-switch", "domain": "church", "difficulty": "med", "prompt": "Sorting out with family which mass you're all going to and what time to leave. — French church/time slots (la messe de dix heures, on part quand) plus a coordinating connector (bon, alors).", "alt": "Chatting about the reception after a cousin's baptism at church — who's coming and where it's held. — French event nouns (le baptême, la réception, la salle) with a casual info-swap connector."}, {"id": "LC-018", "stratum": "heavy-french-code-switch", "domain": "logistics", "difficulty": "hard", "prompt": "Last-minute and apologetic, asking to push a plan back an hour because you're swamped. — heavy French: apology (désolé[e]), 'can we push it' (on peut décaler / reporter), and 'swamped' (je suis débordé[e]).", "alt": "Giving someone driving directions: take the highway, this exit, and meet out front. — dense French route slots (l'autoroute, la sortie, rendez-vous devant, tout droit)."}, {"id": "LC-019", "stratum": "french-syriac-loan+religious", "domain": "politics-light", "difficulty": "med", "prompt": "At a big family Sunday lunch, an uncle half-jokes that the whole village votes exactly how the priest (abouna) hints from the pulpit, and shrugs it off with a tired 'God help us.'", "alt": "Someone griping that the municipality only repaves the road by the church right before the saint's (mar) feast so the bishop's motorcade looks presentable."}, {"id": "LC-020", "stratum": "french-syriac-loan+religious", "domain": "emotional", "difficulty": "hard", "prompt": "Consoling a grieving friend at a wake, telling them their father is with the saints now and 'may God rest his soul,' the condolence formula slipping between Arabic and a French 'que Dieu ait son âme.'", "alt": "After a bad health scare, someone chokes up with gratitude saying they lit a candle to the Virgin and made a vow (nazr), dropping a 'franchement' and an English 'I swear to God.'"}, {"id": "LC-021", "stratum": "french-syriac-loan+religious", "domain": "social", "difficulty": "med", "prompt": "After mass, casually inviting a friend to swing by the house for the baptism (ma'moudiyye) celebration, promising coffee and that it won't run long.", "alt": "Making dinner plans and pausing to ask whether the friend is keeping the big fast (el-sawm el-kbir / Lent) this year, so they don't pick a meat place."}, {"id": "LC-022", "stratum": "french-syriac-loan+religious", "domain": "family", "difficulty": "hard", "prompt": "A grandmother catches a kid heading out the door and rattles off a rapid-fire blessing over a sneeze, half in French, then tells him to kiss the icon (icone) on the way out and not forget his teta.", "alt": "A parent gently guilt-trips their grown kid for skipping Sunday mass (qeddas), invoking that their teta prays for them every single day, with a French 'quand même' sliding in."}, {"id": "LC-023", "stratum": "french-syriac-loan+religious", "domain": "food", "difficulty": "med", "prompt": "At the table during the fast, explaining that this version of the dish is the lenten/fasting (siyami) one with no meat or dairy, and pushing a second helping on a guest.", "alt": "Telling everyone to save room for the ma'moul cookies teta only bakes for Easter (Eid el-Qiyame), because she's been at it since dawn."}, {"id": "LC-024", "stratum": "french-syriac-loan+religious", "domain": "church", "difficulty": "hard", "prompt": "A subdeacon whispering during the liturgy that the deacon (shammas) forgot the incense (bakhour) again and the monk (raheb) is quietly furious, with a 'franchement' and an English aside thrown in.", "alt": "Two people arguing before Sunday whether to sing the hymn in Syriac or Arabic, one insisting the old Syriac Qadishat (the Trisagion, 'Qadishat Aloho') just hits different."}, {"id": "LC-025", "stratum": "idiom-proverb-cultural", "domain": "logistics", "difficulty": "hard", "prompt": "Your cousin is trying to cram a whole apartment move into one afternoon, double-booking the truck, the movers, and lunch, and getting frantic. You wave him off and tell him to breathe — it'll all get done in God's time, no need to tear yourself apart over it — using the set proverb that scolds someone for rushing because haste is exactly what wrecks the job.", "alt": "A friend asks you, in the same breath, to swing by the church hall and load the fair tables AND drive his mother to the airport across town at the same hour. You turn him down with the fixed one-person-can't-do-two-jobs idiom (the 'you can't hold two watermelons in one hand' type), half-laughing, swearing by the Cross you'd need to clone yourself."}, {"id": "LC-026", "stratum": "idiom-proverb-cultural", "domain": "politics-light", "difficulty": "adv", "prompt": "You're arguing about the coming election and someone still believes a new face will fix things. You shut it down with the cynical proverb meaning it's the same rule under a different rider — swap the saddle, it's the same donkey — the leadership changes costume but nothing underneath moves. Drop a French filler (genre, quand-même) mid-sentence as an educated speaker would.", "alt": "Two big regional powers are squaring off and everyone's picking sides. You argue for staying out of it with the proverb about how, when the big ones fight, it's the small people underneath who get crushed — the weak player is the one who pays. Let a French connector slip in the way an educated speaker code-switches."}, {"id": "LC-027", "stratum": "idiom-proverb-cultural", "domain": "emotional", "difficulty": "hard", "prompt": "A close friend just buried a parent and is drowning. You sit with them and offer the fatalistic-but-tender consolation proverb — that God never loads you past what your shoulders can carry, that the cross He hands you He also helps you bear. The message is heavily code-switched, French and Arabic braided the way this milieu actually grieves aloud.", "alt": "You've been sick with worry over your kid who won't call back, and you tell your sister you're being eaten alive inside about it — using the visceral body-idiom for consuming, gnawing dread (the 'eating your own heart / blood' type), sighing an appeal to the Virgin. The line is thick with French filler as an anxious, educated speaker would slip into it."}, {"id": "LC-028", "stratum": "idiom-proverb-cultural", "domain": "social", "difficulty": "adv", "prompt": "At a family lunch the gossip turns to a mutual friend who's all honey to your face and then knifes you the second you leave. You sum her up with the two-faced proverb — the one about someone who kisses you and counts your teeth while doing it — swearing by a saint that you've seen it yourself.", "alt": "A cousin in her thirties is getting teased at a gathering for still being single and starts to fret. You warmly hush the table with the proverb that everyone's match comes in its written time, God's hand not yours — and toss in the nod to the saint people invoke to find a husband (Mar Antonios). Keep it teasing and affectionate."}, {"id": "LC-029", "stratum": "idiom-proverb-cultural", "domain": "family", "difficulty": "hard", "prompt": "Watching your nephew pull the exact same stubborn stunt his father was famous for, you laugh and land the heredity proverb — the son of the duck is a born swimmer, the apple doesn't fall far — with a light French aside and a quick 'God keep him.' It's fond, not critical.", "alt": "Your brother and you had a blowup last month but he's in trouble now and of course you're the first one there. You explain it to a friend with the loyalty proverb that blood never turns to water — family stays family however ugly the fight got — with a light French phrase and a 'thank God we have each other.'"}, {"id": "LC-030", "stratum": "idiom-proverb-cultural", "domain": "food", "difficulty": "adv", "prompt": "A guy at the restaurant is being suspiciously generous — extra dishes, extra smiles, no bill in sight — and you lean over to warn your friend that something's cooking under all this, there's a pot with a lid on it here, i.e. a hidden agenda behind the free food. Braid in heavy French the way this crowd talks over a meal.", "alt": "Someone raves about a caterer everyone hyped, but the food and the man both turned out utterly charmless. You dismiss him with the idiom that his food has no salt — the 'saltless / bland person' put-down for someone with zero charm or flavor — dropping several French words as an educated foodie would."}, {"id": "LC-031", "stratum": "idiom-proverb-cultural", "domain": "church", "difficulty": "hard", "prompt": "After Mass you and a friend clock the man who's pious as a statue in the pew and then a tyrant to his wife and workers all week. You skewer him with the hypocrite proverb — a saint in the church, a devil at home — dry and warm, muttering it so only she hears, half-crossing yourself.", "alt": "A younger cousin is too ashamed to go to confession, sure he's too far gone to be forgiven. You reassure him with the mercy proverb that God's door never shuts, that the way back is always open however late you come — warm, plain, no lecturing."}, {"id": "LC-032", "stratum": "idiom-proverb-cultural", "domain": "logistics", "difficulty": "adv", "prompt": "Your teammate tried to launch the delivery before the paperwork, the payment, or the address were sorted, and predictably it collapsed. You explain the fiasco with the idiom for doing things backwards — hitching everything in the wrong order, the cart dragging the horse — with a light French aside about how obviously it fell apart.", "alt": "A shipment has been a month-long ordeal of excuses and reroutes and everyone's exhausted arguing about it. You call it with the idiom for cutting losses and closing the file — enough, we've eaten enough dirt over this, shut the subject — with one French word tossed in as you wave it off."}, {"id": "LC-033", "stratum": "pragmatics-tone", "domain": "politics-light", "difficulty": "med", "prompt": "A dry, resigned crack about the government providing two hours of electricity a day, delivered as a mock-blessing — thanking the state and even invoking a saint sarcastically, as in 'even Mar Charbel couldn't fix this grid.' Bitter but affectionate, not a rant.", "alt": "At a family lunch, someone tiptoeing around their political leanings to avoid starting a fight — heavily hedged, 'I'm not saying I'd vote for them, but let's just say the other side is worse.' Careful, non-committal, half-swallowed."}, {"id": "LC-034", "stratum": "pragmatics-tone", "domain": "emotional", "difficulty": "hard", "prompt": "Consoling a friend crying over a breakup, where the warmth is delivered entirely through insult — calling them an idiot for wasting tears on him while pulling them into a hug. One French connective ('mais...') slips in.", "alt": "Admitting you miss someone but hedging hard to dodge the vulnerability — 'it's fine, I don't really think about it, it's just the house is quieter, that's all.' Grief buried under understatement and deflection."}, {"id": "LC-035", "stratum": "pragmatics-tone", "domain": "social", "difficulty": "med", "prompt": "Turning down yet another night out with over-the-top warm excuses and teasing the friend for always overscheduling — 'habibe I love you, but one more Thursday out and I'm dead, plus I have church in the morning.' Dense French/English code-switch, playful refusal.", "alt": "Backhandedly 'congratulating' a mutual friend's flashy new car in a group chat — 'bravo to him, really, très chic, must be nice for some people.' Catty admiration that means the opposite."}, {"id": "LC-036", "stratum": "pragmatics-tone", "domain": "family", "difficulty": "hard", "prompt": "A mother mildly guilt-tripping her kid for never calling, wrapped in mock-martyr sweetness — 'no, no, don't worry about me, I'm used to it now, I'm fine.' Warmth and reproach fused into one passive-aggressive breath.", "alt": "Ribbing a sibling who's suddenly gotten responsible and settled down — 'look at him, all grown up, who even is this man.' Affectionate mock-astonishment at the change."}, {"id": "LC-037", "stratum": "pragmatics-tone", "domain": "food", "difficulty": "med", "prompt": "Fending off an aunt (Tante Thérèse) piling on a third helping, mock-protesting before caving — 'I swear one more piece and I won't fit through the door... fine, half.' A French tag slips in. Warm tug-of-war, not real refusal.", "alt": "Politely lying about someone's failed dish to spare their feelings — 'no, really, it's... interesting, bon, I've honestly never tasted anything like it.' Strained hedged fake-praise."}, {"id": "LC-038", "stratum": "pragmatics-tone", "domain": "church", "difficulty": "hard", "prompt": "Griping affectionately about the priest's endless sermon while still clearly loving the place — 'God forgive me, but if he talks five more minutes I'm converting.' Irreverent, heavy code-switch, said under one's breath in the pew.", "alt": "Needling a friend who only ever shows up to church at Christmas and Easter — 'ah, look who finally remembered where the church is.' Sarcastic welcome as a greeting."}, {"id": "LC-039", "stratum": "register-trap", "domain": "logistics", "difficulty": "med", "prompt": "A friend texting to sort out a ride: they're saying don't stress about picking them up, they'll just grab a service (shared taxi) and meet everyone at the place — casual, reassuring, waving off the fuss over logistics.", "alt": "Someone confirming plans for tomorrow: telling the group they'll swing by around noon-ish to drop off the keys, no need to wait around, they'll figure it out — offhand coordinating tone."}, {"id": "LC-040", "stratum": "register-trap", "domain": "politics-light", "difficulty": "hard", "prompt": "Ribbing the government at a family lunch: someone shrugging that of course the electricity's out again, what did you expect, this is how it's always been and nobody's coming to fix it — dry, resigned, half-joking political cynicism.", "alt": "Reacting to a politician's promise on TV: waving a hand and saying yeah, sure, we've heard this song before, they'll say anything till the election and then vanish — cynical but light, not a rant."}, {"id": "LC-041", "stratum": "register-trap", "domain": "emotional", "difficulty": "med", "prompt": "Comforting a friend who's spiraling before a big decision: telling them gently to breathe, it's going to be okay, God willing it works out, and whatever happens you're not alone in it — tender, steadying.", "alt": "Checking in on someone who's been down: saying you've been on my mind, don't keep it all bottled up, come by and we'll have coffee and you'll feel lighter — caring, unhurried."}, {"id": "LC-042", "stratum": "register-trap", "domain": "social", "difficulty": "hard", "prompt": "Gossiping at a gathering about someone who's putting on airs: saying she's acting like she's better than everyone now that she moved to the fancy neighborhood, but we remember where she came from — catty, knowing, socially loaded.", "alt": "Describing an awkward social obligation: complaining you have to show your face at the neighbor's thing even though you'd rather not, because otherwise people will talk — resigned, insider-social tone."}, {"id": "LC-043", "stratum": "register-trap", "domain": "family", "difficulty": "med", "prompt": "A mother nagging warmly on the phone: telling her adult kid to eat something, you're skin and bones, did you sleep, call your grandmother, she keeps asking about you — affectionate scolding, rapid-fire.", "alt": "An aunt guilt-tripping lovingly about a visit: saying you never come see us anymore, we're not going to be around forever, bring the kids, the door is always open — heartfelt family pressure."}, {"id": "LC-044", "stratum": "register-trap", "domain": "food", "difficulty": "hard", "prompt": "Bragging about a home cook at the table: insisting you have to try the kibbeh, nobody makes it like my mother, one bite and you'll forget your own name — hyperbolic, delighted food-praise.", "alt": "Turning down a third helping while being pressured: laughing that you can't, you're going to burst, everything was incredible but have mercy — the ritual over-feeding push-and-pull."}, {"id": "LC-045", "stratum": "arabizi-orthographic-variation", "domain": "church", "difficulty": "med", "prompt": "A cousin texts you to hurry up for the evening liturgy: 'Are you coming to the 7 o'clock Mass at Mar Charbel? Someone's saving us a seat, don't be late.' The sentence should also carry a casual aside like 'is anyone even coming' so the ḥa-sound word for 'someone/anybody' appears.", "alt": "After Sunday service a warm relative pulls you aside: 'Come light a candle with me at Our Lady's, then we'll go get coffee, my dear.' Include a term of endearment aimed at the listener so the glottal/qaf word for 'my heart, sweetheart' shows up."}, {"id": "LC-046", "stratum": "arabizi-orthographic-variation", "domain": "logistics", "difficulty": "med", "prompt": "You're coordinating an airport pickup with a friend: 'The flight lands at 5, wait for me at arrivals and take the highway, not the old coast road — fine, done, see you there.' The reply should end with the casual 'alright/that's it' filler.", "alt": "You're organizing a move over text: 'Call the truck guy, tell him it's 3 boxes at my place, we need them out before Tuesday.' The message should use the everyday 'at/on my place' preposition so the ʿayn-word appears next to the box count."}, {"id": "LC-047", "stratum": "arabizi-orthographic-variation", "domain": "politics-light", "difficulty": "hard", "prompt": "You're venting about the generator subscription going up again: 'The moteur guy raised the bill on us, honestly what happened to this country, the state power's basically gone.' Heavy French-English mix, and it must include the 'it became / it's gone' verb and the word for 'electricity'.", "alt": "You're half-joking about the campaign season: 'Same faces every election, they promise and promise and then — nothing, that's it.' The sentence should lean on reported speech ('they said', 'he said') so the qaf word surfaces, mixing French and English political loans."}, {"id": "LC-048", "stratum": "arabizi-orthographic-variation", "domain": "emotional", "difficulty": "med", "prompt": "You're consoling a friend whose grandmother just died: 'God rest her soul, she's with the Lord now — be strong, we're all here for you.' The source must use the standard 'God have mercy on her' condolence formula.", "alt": "You're reassuring an anxious sibling before their exam results: 'Don't worry, sweetheart, put it in God's hands, I'm praying for you.' Include the 'God willing' phrase and a term of endearment so both variable slots appear."}, {"id": "LC-049", "stratum": "adversarial-multiclause", "domain": "social", "difficulty": "adv", "prompt": "A speaker lingering in the churchyard after Sunday Mass, telling friends how the sermon dragged on forever this week, then breaking off mid-complaint to grumble that there's never anywhere to park near the church anymore, then landing on rounding everyone up for lunch at their place before it gets late. Warm, run-on, stitched together with fillers like 'anyway,' 'I swear to you,' 'the thing is.'", "alt": "Two friends gossiping over coffee about a mutual friend's sudden engagement: starting off skeptical it'll even last, then sidetracking into how the two families have known each other forever from the same parish, then swerving onto how insane wedding costs have gotten these days, and signing off with a 'congratulations' that's really a raised eyebrow."}, {"id": "LC-050", "stratum": "adversarial-multiclause", "domain": "family", "difficulty": "adv", "prompt": "A parent on the phone half-managing the house: telling one kid to just finish their homework already, cutting themselves off to remember out loud that there's a dentist appointment tomorrow, then sliding into how nobody in this family ever lifts a finger to help, then softening it all with 'have you even eaten anything?' Nagging and affectionate in the same breath.", "alt": "Someone recounting last night's dinner-table blowup to a sibling: laying out who said what to whom, then jumping in to defend their mother's side, then veering off onto a years-old grudge that got dragged back up, then waving the whole thing away as not worth the headache. Full of reported speech and mid-stream pivots."}];
+const LS = 'ourwords_pairs_v1';
+let idx = 0;
+let pairs = JSON.parse(localStorage.getItem(LS) || '[]');
+let stream = null;                       // shared mic stream (opened on first record, gesture)
+const cur = { lb:{blob:null,mime:''}, en:{blob:null,mime:''} };
+
+function pickMime(){
+  const c=['audio/mp4','audio/aac','audio/webm;codecs=opus','audio/webm'];
+  for(const t of c){ if(window.MediaRecorder && (!MediaRecorder.isTypeSupported||MediaRecorder.isTypeSupported(t))) return t; }
+  return 'audio/mp4';
+}
+async function getMic(){
+  if(stream) return stream;
+  stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
+  return stream;
+}
+
+// ---- IndexedDB for audio (best-effort; never blocks saving text) ----
+let dbP = null;
+function db(){
+  if(dbP) return dbP;
+  dbP = new Promise((res)=>{ try{
+    const rq = indexedDB.open('ourwords',1);
+    rq.onupgradeneeded=()=>rq.result.createObjectStore('audio');
+    rq.onsuccess=()=>res(rq.result); rq.onerror=()=>res(null);
+  }catch(e){ res(null); }});
+  return dbP;
+}
+async function putAudio(key,blob){ try{ const d=await db(); if(!d||!blob)return;
+  d.transaction('audio','readwrite').objectStore('audio').put(blob,key);
+}catch(e){} }
+async function getAudio(key){ try{ const d=await db(); if(!d)return null;
+  return await new Promise(r=>{ const rq=d.transaction('audio').objectStore('audio').get(key); rq.onsuccess=()=>r(rq.result||null); rq.onerror=()=>r(null); });
+}catch(e){ return null; } }
+
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function render(){
+  const done = pairs.length;
+  $('#savedN').textContent = done;
+  $('#prog').style.width = (idx/SITUATIONS.length*100)+'%';
+  if(idx>=SITUATIONS.length){
+    $('#app').innerHTML = '<div class="done"><h2>That’s all 50 — beautiful.</h2>'+
+      '<p style="color:var(--dim)">You captured '+done+' pairs together. Tap Export to save them off the phone.</p>'+
+      '<button class="save" style="margin-top:14px;padding:14px 20px;border-radius:12px" onclick="idx=0;render()">Go through again</button></div>';
+    return;
+  }
+  const s = SITUATIONS[idx];
+  const saved = pairs.find(p=>p.id===s.id && p._slot===idx);
+  cur.lb={blob:null,mime:''}; cur.en={blob:null,mime:''};
+  $('#app').innerHTML = `
+    <div class="card">
+      <div class="meta"><span>${esc(s.id)}</span><span class="n">${esc(s.stratum)} · ${esc(s.domain)} · ${esc(s.difficulty)}</span><span class="n">${idx+1}/${SITUATIONS.length}</span></div>
+      <div class="prompt">${esc(s.prompt)}</div>
+      ${s.alt?`<div class="alt"><b>or:</b> ${esc(s.alt)}</div>`:''}
+    </div>
+    ${zone('lb','🇱🇧  Him — in Lebanese','ar-SA','rtl','اكتب شو قال (or type what he said)')}
+    ${zone('en','🗣️  You — in English','en-US','ltr','type what you said')}
+    <div class="nav">
+      <button class="ghost" onclick="go(-1)">←</button>
+      <button class="ghost" onclick="go(1)">Skip</button>
+      <button class="save" onclick="save()">Save &amp; Next →</button>
+    </div>`;
+  wireZone('lb'); wireZone('en');
+  if(saved){ $('#lb_txt').value=saved.lb_text||''; $('#en_txt').value=saved.en_text||''; }
+}
+
+function zone(k,label,lang,dir,ph){
+  return `<div class="zone">
+    <div class="zlab">${label}<span class="tag" id="${k}_st">tap to record</span></div>
+    <div class="rowb">
+      <button class="rec" id="${k}_rec">🎙️ Record</button>
+      <span class="time" id="${k}_time">0:00</span>
+      <audio id="${k}_aud" controls hidden></audio>
+    </div>
+    <button class="dictate" id="${k}_dic" data-lang="${lang}">✍️ Auto-transcribe</button>
+    <textarea id="${k}_txt" dir="${dir}" placeholder="${ph}"></textarea>
+  </div>`;
+}
+
+function wireZone(k){
+  const btn=$('#'+k+'_rec'), timeEl=$('#'+k+'_time'), st=$('#'+k+'_st'), aud=$('#'+k+'_aud');
+  let rec=null, chunks=[], t0=0, tick=null;
+  btn.onclick = async ()=>{
+    if(rec && rec.state==='recording'){ rec.stop(); return; }
+    try{
+      const ms = await getMic();
+      const mime = pickMime();
+      rec = new MediaRecorder(ms,{mimeType:mime}); chunks=[];
+      rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
+      rec.onstart=()=>{ btn.classList.add('on'); btn.textContent='⏹ Stop'; st.textContent='recording…'; t0=Date.now();
+        tick=setInterval(()=>{ const s=(Date.now()-t0)/1000|0; timeEl.textContent=(s/60|0)+':'+String(s%60).padStart(2,'0'); },250); };
+      rec.onstop=()=>{ clearInterval(tick); btn.classList.remove('on'); btn.textContent='🎙️ Re-record'; st.textContent='saved ✓';
+        const blob=new Blob(chunks,{type:mime}); cur[k]={blob,mime};
+        aud.src=URL.createObjectURL(blob); aud.hidden=false; };
+      rec.start();
+    }catch(e){ st.textContent='mic blocked — just type'; alert('Mic unavailable ('+(e.name||e)+'). You can still type the text and Save.'); }
+  };
+  const dic=$('#'+k+'_dic');
+  const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ dic.style.display='none'; }
+  else dic.onclick=()=>{
+    try{
+      const r=new SR(); r.lang=dic.dataset.lang; r.interimResults=true; r.continuous=false;
+      const box=$('#'+k+'_txt'); const base=box.value?box.value+' ':'';
+      dic.textContent='🎤 listening…';
+      r.onresult=e=>{ let t=''; for(const res of e.results) t+=res[0].transcript; box.value=base+t; };
+      r.onend=()=>{ dic.textContent='✍️ Auto-transcribe'; };
+      r.onerror=()=>{ dic.textContent='✍️ Auto-transcribe'; };
+      r.start();
+    }catch(e){ dic.style.display='none'; }
+  };
+}
+
+async function save(){
+  const s=SITUATIONS[idx];
+  const lb_text=$('#lb_txt').value.trim(), en_text=$('#en_txt').value.trim();
+  if(!lb_text && !en_text && !cur.lb.blob && !cur.en.blob){ go(1); return; }
+  const pair={ id:s.id, _slot:idx, stratum:s.stratum, domain:s.domain, difficulty:s.difficulty,
+    situation:s.prompt, lb_text, en_text, lb_mime:cur.lb.mime||'', en_mime:cur.en.mime||'',
+    has_lb_audio:!!cur.lb.blob, has_en_audio:!!cur.en.blob, ts:new Date().toISOString() };
+  pairs = pairs.filter(p=>!(p.id===s.id && p._slot===idx)); pairs.push(pair);
+  localStorage.setItem(LS, JSON.stringify(pairs));
+  if(cur.lb.blob) putAudio(s.id+'-'+idx+'-lb', cur.lb.blob);
+  if(cur.en.blob) putAudio(s.id+'-'+idx+'-en', cur.en.blob);
+  go(1);
+}
+function go(d){ idx=Math.max(0,Math.min(SITUATIONS.length, idx+d)); render(); }
+
+// ---- export: JSON of text pairs + a CSV, and audio files ----
+function download(name, blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+$('#export').onclick = async ()=>{
+  if(!pairs.length){ alert('Nothing saved yet.'); return; }
+  const stamp=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+  download('our-words-'+stamp+'.json', new Blob([JSON.stringify(pairs,null,2)],{type:'application/json'}));
+  const cols=['id','stratum','domain','difficulty','situation','lb_text','en_text','has_lb_audio','has_en_audio','ts'];
+  const csv=[cols.join(',')].concat(pairs.map(p=>cols.map(c=>{
+    const v=(p[c]==null?'':String(p[c])).replace(/"/g,'""'); return /[",\n]/.test(v)?'"'+v+'"':v; }).join(','))).join('\n');
+  download('our-words-'+stamp+'.csv', new Blob([csv],{type:'text/csv'}));
+  // audio, best-effort, sequential so the browser doesn't block
+  for(const p of pairs){ for(const side of ['lb','en']){
+    if(p['has_'+side+'_audio']){ const b=await getAudio(p.id+'-'+p._slot+'-'+side);
+      if(b){ const ext=(p[side+'_mime']||'').includes('webm')?'webm':'m4a';
+        download(p.id+'-'+side+'.'+ext, b); await new Promise(r=>setTimeout(r,350)); } } } }
+};
+render();
+</script>
+</body>
+</html>
